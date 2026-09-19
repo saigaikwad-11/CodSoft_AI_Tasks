@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Detection & Recognition</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0f1115;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #171a20;
+            border-bottom: 1px solid #2a2e36;
+            padding: 22px 35px;
+        }
+
+        .header h1 {
+            font-size: 25px;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: #9299a3;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 30px auto;
+            padding: 0 25px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 22px;
+        }
+
+        .card {
+            background: #171a20;
+            border: 1px solid #2a2e36;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 17px 20px;
+            border-bottom: 1px solid #2a2e36;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .camera {
+            background: #000;
+            width: 100%;
+            min-height: 480px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .camera img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .side {
+            padding: 20px;
+        }
+
+        .status-box {
+            background: #101319;
+            border: 1px solid #292e37;
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .label {
+            color: #858d98;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 9px;
+        }
+
+        .status {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .message {
+            color: #9ca4af;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .info {
+            border-top: 1px solid #292e37;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid #292e37;
+            font-size: 14px;
+        }
+
+        .row span:first-child {
+            color: #858d98;
+        }
+
+        .row span:last-child {
+            color: #ffffff;
+        }
+
+        .button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            background: #20252d;
+            border: 1px solid #343a44;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .button:hover {
+            background: #292f38;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-top: 22px;
+        }
+
+        .metric {
+            background: #171a20;
+            border: 1px solid #2a2e36;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .metric-title {
+            color: #858d98;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .system {
+            margin-top: 22px;
+        }
+
+        .system-content {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .system-item {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #292e37;
+        }
+
+        .system-item span:first-child {
+            color: #858d98;
+            font-size: 13px;
+        }
+
+        .system-item span:last-child {
+            font-size: 13px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666e79;
+            font-size: 12px;
+            padding: 30px;
+        }
+
+        @media (max-width: 850px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .system-content {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            .camera {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="header">
+    <h1>Face Detection & Recognition</h1>
+    <p>Real-time face detection and recognition system</p>
+</header>
+
+<main class="container">
+
+    <div class="dashboard">
+
+        <!-- LIVE CAMERA -->
+        <div class="card">
+
+            <div class="card-header">
+                Live Camera
+            </div>
+
+            <div class="camera">
+                <img
+                    src="{{ url_for('video_feed') }}"
+                    alt="Live Camera Feed"
+                >
+            </div>
+
+        </div>
+
+
+        <!-- STATUS -->
+        <div class="card">
+
+            <div class="card-header">
+                Recognition Status
+            </div>
+
+            <div class="side">
+
+                <div class="status-box">
+
+                    <div class="label">
+                        Current Status
+                    </div>
+
+                    <div
+                        class="status"
+                        id="status"
+                    >
+                        Scanning
+                    </div>
+
+                    <div
+                        class="message"
+                        id="message"
+                    >
+                        Waiting for a face to be detected.
+                    </div>
+
+                </div>
+
+
+                <div class="info">
+
+                    <div class="row">
+                        <span>Known Faces</span>
+                        <span id="knownFaces">0</span>
+                    </div>
+
+                    <div class="row">
+                        <span>Camera</span>
+                        <span>Active</span>
+                    </div>
+
+                    <div class="row">
+                        <span>Detection</span>
+                        <span>YuNet</span>
+                    </div>
+
+                    <div class="row">
+                        <span>Recognition</span>
+                        <span>SFace</span>
+                    </div>
+
+                    <div class="row">
+                        <span>System</span>
+                        <span>Online</span>
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="button"
+                    onclick="reloadFaces()"
+                >
+                    Reload Known Faces
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- METRICS -->
+
+    <div class="metrics">
+
+        <div class="metric">
+            <div class="metric-title">
+                Faces Detected
+            </div>
+
+            <div
+                class="metric-value"
+                id="faces"
+            >
+                0
+            </div>
+        </div>
+
+
+        <div class="metric">
+            <div class="metric-title">
+                Recognized
+            </div>
+
+            <div
+                class="metric-value"
+                id="recognized"
+            >
+                0
+            </div>
+        </div>
+
+
+        <div class="metric">
+            <div class="metric-title">
+                Unknown
+            </div>
+
+            <div
+                class="metric-value"
+                id="unknown"
+            >
+                0
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- SYSTEM INFORMATION -->
+
+    <div class="card system">
+
+        <div class="card-header">
+            System Information
+        </div>
+
+        <div class="system-content">
+
+            <div class="system-item">
+                <span>Backend</span>
+                <span>Flask</span>
+            </div>
+
+            <div class="system-item">
+                <span>Camera Status</span>
+                <span>Running</span>
+            </div>
+
+            <div class="system-item">
+                <span>Model Status</span>
+                <span>Loaded</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<footer class="footer">
+    Face Detection & Recognition System
+</footer>
+
+
+<script>
+
+async function updateStatus() {
+
+    try {
+
+        const response = await fetch("/api/status");
+
+        const data = await response.json();
+
+
+        document.getElementById("faces").textContent =
+            data.face_count;
+
+        document.getElementById("recognized").textContent =
+            data.recognized;
+
+        document.getElementById("unknown").textContent =
+            data.unknown;
+
+        document.getElementById("knownFaces").textContent =
+            data.known_faces;
+
+
+        const status =
+            document.getElementById("status");
+
+        const message =
+            document.getElementById("message");
+
+
+        if (data.recognized > 0) {
+
+            status.textContent =
+                "Face Recognized";
+
+            message.textContent =
+                "Known face successfully recognized.";
+
+        }
+
+        else if (data.unknown > 0) {
+
+            status.textContent =
+                "Unknown Face";
+
+            message.textContent =
+                "Face detected but identity could not be recognized.";
+
+        }
+
+        else if (data.face_count > 0) {
+
+            status.textContent =
+                "Face Detected";
+
+            message.textContent =
+                "Face detected. Processing recognition...";
+
+        }
+
+        else {
+
+            status.textContent =
+                "Scanning";
+
+            message.textContent =
+                "Waiting for a face to be detected.";
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Status update failed:",
+            error
+        );
+
+    }
+
+}
+
+
+async function reloadFaces() {
+
+    try {
+
+        await fetch("/api/reload");
+
+        updateStatus();
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Reload failed:",
+            error
+        );
+
+    }
+
+}
+
+
+updateStatus();
+
+setInterval(
+    updateStatus,
+    1000
+);
+
+</script>
+
+</body>
+</html>
